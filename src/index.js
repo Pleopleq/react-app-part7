@@ -25,7 +25,7 @@ const App = () => {
   if(countryToSearch !== ''){
     countryToSearchToUpper = countryToSearch.charAt(0).toUpperCase() + countryToSearch.substring(1);
   }
-  
+
   let searchBar = copyOfContries.filter(el => el.name.includes(countryToSearchToUpper));
 
   //Set the countries array to an empty array to prevent to print all
@@ -33,6 +33,12 @@ const App = () => {
   if(countryToSearch === ''){
     searchBar = [];
   }
+
+  if(searchBar.length > 10){
+    searchBar = [{name: 'Woops, too many matches. Be more specific'}]
+  }
+
+  
 
   useEffect(() => {
     axios
