@@ -2,15 +2,14 @@ import React, { useState, useEffect }  from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 
-const PrintData = ({country, index}) =>{
-  return <li key={index}>{country}</li>
+const PrintData = ({data, index}) =>{
+      return <p key={index}>{data}</p> 
 }
-
 
 const App = () => {
 
   const [countries, setContries] = useState([]);
-  const [newSearch, setNewSearch ] = useState('');
+  const [newSearch, setNewSearch] = useState('');
 
   const handleSearchBarChange = event =>{
     setNewSearch(event.target.value);
@@ -18,11 +17,22 @@ const App = () => {
 
   const countryToSearch = newSearch;
 
-  let copyOfContries = countries;
+  const copyOfContries = countries;
 
-  const countryToSearchToUpper = countryToSearch.charAt(0).toUpperCase() + countryToSearch.substring(1);
+  let countryToSearchToUpper = '';
 
-  const searchBar = copyOfContries.filter(el => el.name.includes(countryToSearchToUpper));
+  //Make the first letter of the search query uppercase
+  if(countryToSearch !== ''){
+    countryToSearchToUpper = countryToSearch.charAt(0).toUpperCase() + countryToSearch.substring(1);
+  }
+  
+  let searchBar = copyOfContries.filter(el => el.name.includes(countryToSearchToUpper));
+
+  //Set the countries array to an empty array to prevent to print all
+  //the contries at once
+  if(countryToSearch === ''){
+    searchBar = [];
+  }
 
   useEffect(() => {
     axios
@@ -39,15 +49,12 @@ const App = () => {
       onChange={handleSearchBarChange}/>
       </p>
     <div>debug: {newSearch}</div>
-    <ul>
-      {searchBar.map((country, index ) =>
-        <PrintData country={country.name} key={index}></PrintData>
+      {searchBar.map((country, index) =>
+        <PrintData data={country.name} key={index}></PrintData>
       )}
-    </ul>
   </div>
   )
 }
-
 
 ReactDOM.render(
     <App />,
