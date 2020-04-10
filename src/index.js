@@ -2,8 +2,19 @@ import React, { useState, useEffect }  from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 
-const PrintData = ({data, index}) =>{
-      return <p key={index}>{data}</p> 
+const PrintData = ({name, capital, population, flag, lenguage,  index, warning}) =>{
+if(warning){
+  return <h1>{warning}</h1>
+} else { 
+  return (
+  <div>
+    <h1 key={index}>{name}</h1>
+    <p>Capital: {capital}</p> 
+    <p>Population: {population}</p>
+    <img src={flag} width={240} alt={'country flag'}></img>
+  </div>
+  ) 
+  }
 }
 
 const App = () => {
@@ -35,9 +46,8 @@ const App = () => {
   }
 
   if(searchBar.length > 10){
-    searchBar = [{name: 'Woops, too many matches. Be more specific'}]
+    searchBar = [{ warning: 'Woops, too many matches. Be more specific'}]
   }
-
   
 
   useEffect(() => {
@@ -56,7 +66,14 @@ const App = () => {
       </p>
     <div>debug: {newSearch}</div>
       {searchBar.map((country, index) =>
-        <PrintData data={country.name} key={index}></PrintData>
+        <PrintData 
+        name={country.name} 
+        capital={country.capital} 
+        population={country.population} 
+        flag={country.flag}
+        key={index}
+        warning={country.warning}>
+        </PrintData>
       )}
   </div>
   )
