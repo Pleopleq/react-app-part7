@@ -2,25 +2,50 @@ import React, { useState, useEffect }  from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 
-const PrintData = ({name, capital, population, flag, lenguage,  index, warning}) =>{
-if(warning){
-  return <h1>{warning}</h1>
-} else { 
-  return (
-  <div>
-    <h1 key={index}>{name}</h1>
-    <p>Capital: {capital}</p> 
-    <p>Population: {population}</p>
-    <img src={flag} width={240} alt={'country flag'}></img>
-  </div>
-  ) 
+let singleCountry = [];
+
+const PrintListOfCountries = ({name, warning, index}) =>{
+
+  const getOneCountry = () => {
+    axios
+    .get(`https://restcountries.eu/rest/v2/name/${name}`)
+    .then(response => {
+      singleCountry = response.data;
+    })
+  }
+  if(warning){
+    return <h1>{warning}</h1>
+  } else {
+    return (
+      <div>
+        <p key={index}>{name} <button onClick={getOneCountry}>Show</button></p> 
+      </div>
+    )
   }
 }
 
-const App = () => {
+const PrintCountry = ({name, capital, population, flag, language}) =>{
+  return (
+  <div>
+    <h1>{name}</h1>
+    <p>Capital: {capital}</p> 
+    <p>Population: {population}</p>
+    <h2>Languages</h2>
+    <ul>
+    {language.map((element, index) => {
+      return <li key={index}>{element.name}</li>
+    })}
+    </ul>
+    <img src={flag} width={240} alt={'country flag'}></img>
+  </div>
+  ) 
+}
 
+
+const App = () => {
   const [countries, setContries] = useState([]);
   const [newSearch, setNewSearch] = useState('');
+
 
   const handleSearchBarChange = event =>{
     setNewSearch(event.target.value);
@@ -48,7 +73,6 @@ const App = () => {
   if(searchBar.length > 10){
     searchBar = [{ warning: 'Woops, too many matches. Be more specific'}]
   }
-  
 
   useEffect(() => {
     axios
@@ -58,30 +82,41 @@ const App = () => {
     })
   }, [])
 
+  const listOfCountries = searchBar.map((country, index) =>    
+    <PrintListOfCountries
+    name={country.name} 
+    key={index}
+    warning={country.warning}>
+    </PrintListOfCountries>
+  )
+  
+  const specificCountry = singleCountry.map(country => 
+    <PrintCountry 
+    name={country.name} 
+    capital={country.capital} 
+    population={country.population} 
+    flag={country.flag}
+    language={country.languages}>
+    </PrintCountry>
+  )
+
   return ( 
   <div>  
       <p>find countries <input 
       value={newSearch}
       onChange={handleSearchBarChange}/>
       </p>
-    <div>debug: {newSearch}</div>
-      {searchBar.map((country, index) =>
-        <PrintData 
-        name={country.name} 
-        capital={country.capital} 
-        population={country.population} 
-        flag={country.flag}
-        key={index}
-        warning={country.warning}>
-        </PrintData>
-      )}
+      <div>
+      {singleCountry.length === 1 
+      ? specificCountry 
+      : listOfCountries
+      }
+      </div>
   </div>
   )
 }
 
 ReactDOM.render(
-    <App />,
+    <App/>,
   document.getElementById('root')
 );
-
-
