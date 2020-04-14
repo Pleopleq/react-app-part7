@@ -1,56 +1,51 @@
 import React, { useState, useEffect }  from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
+import PrintCountry from './components/PrintCountry';
+import PrintListOfCountries from './components/PrintListOfCountries';
+import PrintWeatherOfCountry from './components/PrintWeatherOfCountry';
 
-
-const PrintListOfCountries = ({name, warning, index, getOne}) =>{
-  if(warning){
-    return <h1>{warning}</h1>
-  } else {
-    return (
-      <div>
-        <p key={index}>{name}  <button onClick={getOne}>Show</button></p>
-      </div>
-    )
-  }
-}
-
-const PrintCountry = ({name, capital, population, flag, language}) =>{
-  return (
-  <div>
-    <h1>{name}</h1>
-    <p>Capital: {capital}</p> 
-    <p>Population: {population}</p>
-    <h2>Languages</h2>
-    <ul>
-    {language.map((element, index) => {
-      return <li key={index}>{element.name}</li>
-    })}
-    </ul>
-    <img src={flag} width={240} alt={'country flag'}></img>
-  </div>
-  ) 
-}
+const api_key = process.env.REACT_APP_API_KEY;
 
 const App = () => {
+
   const [countries, setContries] = useState([]);
   const [newSearch, setNewSearch] = useState('');
   const [selectedCountry, setSelectedCountry] = useState([]);
-
+  const [getCapitalName, setCapitalName] = useState([]);
+  const [getWeather, setWeather] = useState([]);
 
   const handleSearchBarChange = event =>{
+
     setNewSearch(event.target.value);
-    setSelectedCountry([])
+    setSelectedCountry([]);
   }
 
-  const handleShowClick = (event) =>{
-    const name = event.target.parentNode.innerText.replace('Show','')
+  const handleShowClick = event =>{
+
+    const name = event.target.parentNode.innerText.replace('Show','');
+    //Single country api call
     axios
     .get(`https://restcountries.eu/rest/v2/name/${name}`)
     .then(response => {
-      setSelectedCountry(response.data)
-    })
+      setSelectedCountry(response.data);
+    });
+
+    //Weather of single country api call
+    axios.get(`http://api.weatherstack.com/current?access_key=${api_key}&query=${name}`)
+    .then(response =>{
+      setCapitalName(response.data.location);
+      setWeather(response.data.current);
+    });
   }
+
+  useEffect(() => {
+    axios
+    .get('https://restcountries.eu/rest/v2/all')
+    .then(response => {
+      setContries(response.data)
+    });
+  },[])
 
   const formatSearchInput =  () =>{
     const countryToSearch = newSearch;
@@ -76,44 +71,53 @@ const App = () => {
   return searchBarInput
   }
 
-
-  useEffect(() => {
-    axios
-    .get('https://restcountries.eu/rest/v2/all')
-    .then(response => {
-      setContries(response.data)
-      console.log(response.data)
-    })
-  },[])
-
   const ViewControl = ({selected}) =>{
-    
     let searchBar = formatSearchInput();
 
     if(selected.length === 1){
-      return selectedCountry.map(country => 
-        <PrintCountry 
-          name={country.name} 
-          capital={country.capital} 
-          population={country.population} 
-          flag={country.flag}
-          language={country.languages}>
-        </PrintCountry>
-      )    
-    } 
-
-    return searchBar.map((country, index) => 
+    return(
+    <div>
+    {
+      selectedCountry.map((country, index) =>  
+      <PrintCountry 
+        name={country.name} 
+        capital={country.capital} 
+        population={country.population} 
+        flag={country.flag}
+        language={country.languages}
+        key={index}>
+      </PrintCountry>)
+    }
+      <div>
+    {
+     <PrintWeatherOfCountry 
+     name={getCapitalName.name}
+     temperature={getWeather.temperature}
+     icon={getWeather.weather_icons}
+     description={getWeather.weather_descriptions}
+     windspeed={getWeather.wind_speed}
+     winddirection={getWeather.wind_dir}
+     >
+     </PrintWeatherOfCountry>
+    }
+      </div>
+    </div>
+    ) 
+  }
+ 
+  return searchBar.map((country, index) => 
     <PrintListOfCountries
       name={country.name} 
       key={index}
       warning={country.warning}
       getOne={handleShowClick}>
-    </PrintListOfCountries>)
+    </PrintListOfCountries>
+    )
   }
 
   return ( 
   <div>  
-      <p>find countries <input 
+      <p><strong>Find countries</strong> <input 
       value={newSearch}
       onChange={handleSearchBarChange}/>
       </p>
